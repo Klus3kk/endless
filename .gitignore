@@ -1,7 +1,6 @@
 # Visual Studio files
 .vs/
 *.suo
-*.user
 *.userosscache
 *.sln.docstates
 ipch/
@@ -44,7 +43,6 @@ bld/
 
 # User-specific files
 *.rsuser
-*.user
 *.userosscache
 *.sln.docstates
 
@@ -90,7 +88,6 @@ $RECYCLE.BIN/
 *.lai
 *.la
 *.a
-
 
 # Executables
 *.exe
