@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{639423e3-a1f2-4903-b24c-44027aff82ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{04789c41-279b-4c5b-bd44-23ec4032ffc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{a38c7ec7-72ff-4224-b615-c8f8cb1e3b5d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\camera.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\portal.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\shader.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\f_portal_frame.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\f_psychedelic.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\f_psychedelic_dev.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\v_basic.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\v_portal.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\v_warping.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\f_dev.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\f_portal.glsl">
+      <Filter>shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
