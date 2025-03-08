@@ -21,10 +21,12 @@
   <ItemGroup>
     <ClInclude Include="include\camera.h" />
     <ClInclude Include="include\portal.h" />
+    <ClInclude Include="include\room.h" />
     <ClInclude Include="include\shader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\RoomManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\f_dev.glsl" />
@@ -32,8 +34,10 @@
     <None Include="shaders\f_portal_frame.glsl" />
     <None Include="shaders\f_psychedelic.glsl" />
     <None Include="shaders\f_psychedelic_dev.glsl" />
+    <None Include="shaders\f_room_psychedelic.glsl" />
     <None Include="shaders\v_basic.glsl" />
     <None Include="shaders\v_portal.glsl" />
+    <None Include="shaders\v_room_warping.glsl" />
     <None Include="shaders\v_warping.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

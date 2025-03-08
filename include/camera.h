@@ -101,8 +101,6 @@ public:
         if (Zoom > 45.0f)
             Zoom = 45.0f;
     }
-
-private:
     // Calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors() {
         // Calculate the new Front vector
@@ -115,5 +113,6 @@ private:
         Right = glm::normalize(glm::cross(Front, WorldUp));  // Normalize the vectors
         Up = glm::normalize(glm::cross(Right, Front));
     }
+private:
 };
 #endif

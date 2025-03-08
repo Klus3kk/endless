@@ -10,6 +10,7 @@
 #include "camera.h"
 #include "shader.h"
 #include "portal.h"
+#include "room.h"
 
 // Window dimensions
 const unsigned int SCR_WIDTH = 1280;
@@ -34,6 +35,9 @@ float lastFrame = 0.0f;
 // Player previous position (for portal crossing detection)
 glm::vec3 prevPosition(0.0f);
 
+// Room Manager managing rooms from 0 to 9
+RoomManager roomManager;
+
 // Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -54,6 +58,7 @@ int main() {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
+    roomManager.initializeRooms();
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -102,10 +107,13 @@ int main() {
     // Set the initial viewport
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
+
+
     // Build and compile shader programs
     Shader portalShader("v_portal.glsl", "f_portal.glsl");
     Shader devShader("v_basic.glsl", "f_dev.glsl");
     Shader psychShader("v_warping.glsl", "f_psychedelic_dev.glsl");
+    Shader roomPsychShader("v_room_warping.glsl", "f_room_psychedelic.glsl");
     //Shader frameShader("v_basic.glsl", "f_portal_frame.glsl");
 
     // Set up vertex data
@@ -196,52 +204,84 @@ int main() {
             (float)SCR_WIDTH / (float)SCR_HEIGHT,
             0.1f, 100.0f);
 
-        // Render portals (with view from other side)
-        renderPortals(portals, projection, portalShader, psychShader, planeVAO, cubeVAO, currentFrame);
-        // Clear main framebuffer
-        glClearColor(0.03f, 0.03f, 0.05f, 1.0f);  // Very dark blue/purple background
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // Check current room
+        int currentRoomIndex = roomManager.getCurrentRoomIndex();
 
-        // Get view matrix for main camera
-        glm::mat4 view = camera.GetViewMatrix();
+        if (currentRoomIndex == 0) {
+            // We're in the development space (Room 0) - use normal rendering path
 
-        // Render the scene from main camera view
-        renderScene(view, projection, psychShader, planeVAO, cubeVAO, portalAOffset, portalBOffset, currentFrame, nonEuclideanFactor > 0.0f);
+            // Render portals (with view from other side)
+            renderPortals(portals, projection, portalShader, psychShader, planeVAO, cubeVAO, currentFrame);
 
-        // Render portal surfaces with their textures
-        portalShader.use();
-        portalShader.setMat4("projection", projection);
-        portalShader.setMat4("view", view);
-        portalShader.setVec3("viewPos", camera.Position);
-        portalShader.setFloat("time", currentFrame);
+            // Clear main framebuffer
+            glClearColor(0.03f, 0.03f, 0.05f, 1.0f);  // Very dark blue/purple background
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (const auto& portal : portals) {
-            // Set model matrix for this portal
-            glm::mat4 model = glm::mat4(1.0f);
-            portalShader.setMat4("model", model);
+            // Get view matrix for main camera
+            glm::mat4 view = camera.GetViewMatrix();
 
-            // Set portal edge color
-            portalShader.setVec4("edgeColor", portal->edgeColor);
+            // Render the scene from main camera view
+            renderScene(view, projection, psychShader, planeVAO, cubeVAO, portalAOffset, portalBOffset, currentFrame, nonEuclideanFactor > 0.0f);
 
-            // Bind the portal texture
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, portal->getTextureID());
-            portalShader.setInt("portalTexture", 0);
-
-            // Render portal surface
-            glBindVertexArray(portal->getVAO());
-            glDrawArrays(GL_TRIANGLES, 0, portal->getVertexCount());
-
-            // Render portal frame
-            //frameShader.use();
-            //frameShader.setMat4("projection", projection);
-            //frameShader.setMat4("view", view);
-            //frameShader.setVec3("viewPos", camera.Position);
-            //frameShader.setFloat("time", currentFrame);
-            //portal->renderPortalFrame(frameShader, currentFrame);
-
-            // Switch back to portal shader for next portal
+            // Render portal surfaces with their textures
             portalShader.use();
+            portalShader.setMat4("projection", projection);
+            portalShader.setMat4("view", view);
+            portalShader.setVec3("viewPos", camera.Position);
+            portalShader.setFloat("time", currentFrame);
+
+            for (const auto& portal : portals) {
+                // Set model matrix for this portal
+                glm::mat4 model = glm::mat4(1.0f);
+                portalShader.setMat4("model", model);
+
+                // Set portal edge color
+                portalShader.setVec4("edgeColor", portal->edgeColor);
+
+                // Bind the portal texture
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, portal->getTextureID());
+                portalShader.setInt("portalTexture", 0);
+
+                // Render portal surface
+                glBindVertexArray(portal->getVAO());
+                glDrawArrays(GL_TRIANGLES, 0, portal->getVertexCount());
+
+                // Render portal frame
+                //frameShader.use();
+                //frameShader.setMat4("projection", projection);
+                //frameShader.setMat4("view", view);
+                //frameShader.setVec3("viewPos", camera.Position);
+                //frameShader.setFloat("time", currentFrame);
+                //portal->renderPortalFrame(frameShader, currentFrame);
+
+                // Switch back to portal shader for next portal
+                portalShader.use();
+            }
+        }
+        else {
+            // We're in a psychedelic room (1-9)
+
+            // Set up the psychedelic room shader
+            roomPsychShader.use();
+            roomManager.setupRoomShader(roomPsychShader, currentRoomIndex, currentFrame);
+
+            // Set clear color based on room
+            const Room& currentRoom = roomManager.getRoom(currentRoomIndex);
+            glClearColor(
+                currentRoom.ambientColor.r,
+                currentRoom.ambientColor.g,
+                currentRoom.ambientColor.b,
+                currentRoom.ambientColor.a
+            );
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            // Get view matrix for main camera
+            glm::mat4 view = camera.GetViewMatrix();
+
+            // Render using the psychedelic shader
+            renderScene(view, projection, roomPsychShader, planeVAO, cubeVAO,
+                portalAOffset, portalBOffset, currentFrame, true);
         }
 
         // Store current position for next frame's portal detection
@@ -321,6 +361,27 @@ void processInput(GLFWwindow* window, std::vector<Portal*>& portals) {
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    for (int key = GLFW_KEY_0; key <= GLFW_KEY_9; key++) {
+        if (glfwGetKey(window, key) == GLFW_PRESS) {
+            static bool keyPressed[10] = { false };
+            int roomIndex = key - GLFW_KEY_0;
+
+            if (!keyPressed[roomIndex] && roomIndex < roomManager.getRoomCount()) {
+                roomManager.teleportToRoom(roomIndex, camera, nonEuclideanFactor,
+                    flightMode, verticalVelocity);
+                keyPressed[roomIndex] = true;
+            }
+        }
+        else {
+            int roomIndex = key - GLFW_KEY_0;
+            if (roomIndex >= 0 && roomIndex < 10) {
+                // Reset key state when released
+                static bool keyPressed[10] = { false };
+                keyPressed[roomIndex] = false;
+            }
+        }
+    }
 
     // Vertical movement (depends on mode)
     if (flightMode) {
@@ -782,6 +843,10 @@ void renderScene(const glm::mat4& view, const glm::mat4& projection, Shader& sha
         shader.setMat4("model", model);
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+    int currentRoom = roomManager.getCurrentRoomIndex();
+    if (currentRoom > 0) {
+        roomManager.renderRoomSpecificContent(currentRoom, shader, cubeVAO, time);
     }
 }
 
