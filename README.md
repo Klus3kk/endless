@@ -9,6 +9,7 @@ Endless is an experimental OpenGL project that simulates non-Euclidean geometry 
 - Create a first-person navigation experience through non-Euclidean spaces
 - Generate procedural psychedelic visuals with custom GLSL shaders
 - Implement various non-Euclidean geometric principles:
+
   - Portal systems
   - Space warping
   - Recursive environments
